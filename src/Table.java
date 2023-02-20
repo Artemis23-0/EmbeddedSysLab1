@@ -3,7 +3,7 @@ import java.util.List;
 public class Table {
     private int size;
     private boolean isOccupied;
-    Party assignedParty;
+    private Party assignedParty;
 
     public Table (int size) {
         this.size = size;

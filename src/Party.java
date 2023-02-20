@@ -1,23 +1,22 @@
 public class Party {
-    String partyName;
-    int partySize;
-    Boolean isSeated;
-    int assignedServer;
+    private String partyName;
+    private int partySize;
+    private int assignedServer;
 
     public Party(String partyName, int partySize) {
+        if (partySize <= 0) {
+            throw new IllegalArgumentException("Must have a party of at least 1");
+        }
+
+        if (partyName == null) {
+            throw new IllegalArgumentException("Must have a valid party name");
+        }
+
         this.partyName = partyName;
         this.partySize = partySize;
-        isSeated = false;
         assignedServer = -1;
     }
 
-    public Boolean getSeated() {
-        return isSeated;
-    }
-
-    public void setSeated(Boolean seated) {
-        isSeated = seated;
-    }
 
     public int getAssignedServer() {
         return assignedServer;

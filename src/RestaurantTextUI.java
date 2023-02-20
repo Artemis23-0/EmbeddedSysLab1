@@ -328,7 +328,7 @@ public class RestaurantTextUI {
 			restaurant.getPartiesInRestaurant().add(party);
 		} else {
 			for (Party p : restaurant.getPartiesInRestaurant()) {
-				if (partyName.equals(p.partyName)) {
+				if (partyName.equals(p.getPartyName())) {
 					// when a duplicate party name is found,
 					hasDuplicateName = true;
 				}
