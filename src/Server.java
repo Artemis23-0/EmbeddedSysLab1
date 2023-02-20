@@ -2,10 +2,11 @@ import java.util.Iterator;
 
 public class Server {
     private double totalTips;
-    private int serverNumber = 1;
+    private int serverNumber;
 
     public Server() {
         totalTips = 0;
+        serverNumber = 1;
     }
 
     public double getTotalTips() {
