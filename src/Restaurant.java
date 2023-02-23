@@ -186,7 +186,7 @@ public class Restaurant {
      */
     public void allocateServers() {
         for (int i = 0; i < partiesInRestaurant.size(); i++) {
-            if (!waitingList.contains(partiesInRestaurant.get(i))) {
+            if (!waitingList.contains(partiesInRestaurant.get(i)) && (partiesInRestaurant.get(i).getAssignedServer() < 0)) {
                 currentServer = iterator.next();
                 partiesInRestaurant.get(i).setAssignedServer(currentServer.getServerNumber());
             }
@@ -198,7 +198,12 @@ public class Restaurant {
             if (!waitingList.contains(partiesInRestaurant.get(i))) {
                 if (partiesInRestaurant.get(i).getAssignedServer() == serverNumber) {
                     currentServer = iterator.next();
-                    partiesInRestaurant.get(i).setAssignedServer(currentServer.getServerNumber());
+                    if (currentServer.getServerNumber() != serverNumber) {
+                        partiesInRestaurant.get(i).setAssignedServer(currentServer.getServerNumber());
+                    } else {
+                        currentServer = iterator.next();
+                        partiesInRestaurant.get(i).setAssignedServer(currentServer.getServerNumber());
+                    }
                 }
             }
         }

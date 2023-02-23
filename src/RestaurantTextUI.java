@@ -161,6 +161,7 @@ public class RestaurantTextUI {
 		restaurant.reallocateServers(cashedOutServer.getServerNumber());
 		restaurant.getServers().remove(cashedOutServer);
 
+
 		System.out.println("Servers now available: " + restaurant.getServers().size());
 		// Servers now available: 3
 	}
@@ -200,7 +201,6 @@ public class RestaurantTextUI {
 	private void checkPlease() {
 		System.out.println("Send the check to a party that has finished eating:");
 		String partyName = ValidInputReader.getValidString("Party's name?", "^[a-zA-Z '-]+$");
-		int serverNumber = -1;
 
 		Boolean nameIsContained = false;
 		for (int i = 0; i < restaurant.getTables().size(); i++) {
@@ -209,7 +209,6 @@ public class RestaurantTextUI {
 				Party p = currTable.getAssignedParty();
 				if (p.getPartyName().equals((partyName))) {
 					nameIsContained = true;
-					serverNumber = p.getAssignedServer();
 					break;
 				}
 			}
@@ -229,10 +228,11 @@ public class RestaurantTextUI {
 		double tip = ValidInputReader.getValidDouble("Tip?", 0.0, 9999.99);
 
 
+		Party p = null;
 		for (int i = 0; i < restaurant.getTables().size(); i++) {
 			Table currTable = restaurant.getTables().get(i);
 			if (currTable.isOccupied()) {
-				Party p = currTable.getAssignedParty();
+				p = currTable.getAssignedParty();
 
 				// TODO: give tip to server, e.g.:
 				// Gave tip of $9.50 to Server #2.
@@ -262,15 +262,21 @@ public class RestaurantTextUI {
 			for (int i = 0; i < restaurant.getWaitingList().size(); i++) {
 				int smallestTable = restaurant.getSmallestAvailableTable(restaurant.getWaitingList().get(i).getPartySize());
 				if (smallestTable != -1) {
+					Table tableToBeSeatedAt = restaurant.getTables().get(smallestTable);
 					Party partyToBeSeated = restaurant.getWaitingList().get(i);
-					restaurant.getTables().get(smallestTable).setAssignedParty(partyToBeSeated);
-					restaurant.getTables().get(smallestTable).getAssignedParty().setAssignedServer(serverNumber);
+					tableToBeSeatedAt.setAssignedParty(partyToBeSeated);
+					tableToBeSeatedAt.getAssignedParty().setAssignedServer(restaurant.iterator.next().getServerNumber());
+
+					int indexOfLeavingParty = restaurant.getPartiesInRestaurant().indexOf(p);
+					int indexOfWaitingListParty = restaurant.getPartiesInRestaurant().indexOf(partyToBeSeated);
+
+					restaurant.getPartiesInRestaurant().set(indexOfLeavingParty, restaurant.getTables().get(smallestTable).getAssignedParty());
+					restaurant.getPartiesInRestaurant().remove(indexOfWaitingListParty);
 					restaurant.getWaitingList().remove(i);
 					System.out.println("Table " + (smallestTable + 1) + " (" + restaurant.getTables().get(smallestTable).getTableSize() + " top): " +
 							restaurant.getTables().get(smallestTable).getAssignedParty().getPartyName() + " party of " +
 							restaurant.getTables().get(smallestTable).getAssignedParty().getPartySize() +
 							" - Server #" + restaurant.getTables().get(smallestTable).getAssignedParty().getAssignedServer());
-					restaurant.iterator.next();
 					// Table 6 (6-top): Erickson party of 5 - Server #2
 					break;
 				}
