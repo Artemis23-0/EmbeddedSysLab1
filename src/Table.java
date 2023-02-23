@@ -12,14 +12,14 @@ public class Table {
     }
 
 
-    public Party getAssignedParty() {
-        return assignedParty;
-    }
-
 
     //Getters
     public Boolean isOccupied() {
         return isOccupied;
+    }
+
+    public Party getAssignedParty() {
+        return assignedParty;
     }
 
     public int getTableSize() {
@@ -32,6 +32,9 @@ public class Table {
     }
 
     public void setAssignedParty(Party party) {
+        if (party == null) {
+            throw new IllegalArgumentException("No null parties allowed here buddy.");
+        }
         assignedParty = party;
         isOccupied = true;
     }

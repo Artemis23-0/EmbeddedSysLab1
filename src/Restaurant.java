@@ -1,4 +1,3 @@
-import javax.sound.midi.Soundbank;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -7,12 +6,13 @@ import java.util.List;
 
 public class Restaurant {
     private String name;
-    public List<Table> tables;
+    private List<Table> tables;
     private List<Party> waitingList;
     private List<Party> partiesInRestaurant;
     private List<Server> servers;
     private static double cashRegister = 0;
 
+    //Constructor
     public Restaurant() {
         partiesInRestaurant = new ArrayList<>();
         tables = new ArrayList<>();
@@ -20,7 +20,15 @@ public class Restaurant {
         servers = new ArrayList<>();
     }
 
+    //Basic Getters
+    public String getName() {
+        return name;
+    }
 
+
+    public List<Table> getTables() {
+        return tables;
+    }
     public List<Party> getWaitingList() {
         return waitingList;
     }
@@ -33,16 +41,12 @@ public class Restaurant {
         return servers;
     }
 
-    public boolean tablesHavePeople() {
-        for (Table t : tables) {
-            if (t.isOccupied()) {
-                return  true;
-            }
-        }
+    //Everything related to table
 
-        return false;
-    }
-
+    /**
+     * Produces reads a file of table sizes and creates a new table from the table size
+     * @param filename is the file to get all of the table sizes from
+     */
     public void producer(String filename) {
         try {
             Scanner input = new Scanner(new File(filename));
@@ -56,6 +60,76 @@ public class Restaurant {
         }
     }
 
+    /**
+     * @return if any of the tables in the restaurant have people at them
+     */
+    public boolean tablesHavePeople() {
+        for (Table t : tables) {
+            if (t.isOccupied()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param partySize the size of the party to seat
+     * @return the first smallest table in the list that can seat this party
+     */
+    public int getSmallestAvailableTable (int partySize) {
+        //Find smallest available table size
+        int smallestTableSize = -1;
+        for (int i = 0; i < tables.size(); i++) {
+            Table currTable = tables.get(i);
+            if (!currTable.isOccupied()) {
+                if (currTable.getTableSize() >= partySize) {
+                    if (smallestTableSize == -1) {
+                        smallestTableSize = currTable.getTableSize();
+                    }
+                    if ((smallestTableSize != -1) && (smallestTableSize > currTable.getTableSize())) {
+                        smallestTableSize = currTable.getTableSize();
+                    }
+                }
+            }
+        }
+
+        //Find that table of that table size
+        if (smallestTableSize != -1) {
+            for (int i = 0; i < tables.size(); i++) {
+                Table currTable = tables.get(i);
+                if (!currTable.isOccupied()) {
+                    if (currTable.getTableSize() == smallestTableSize) {
+                        return i;
+                    }
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * @return the table with the largest size in the restaurant
+     */
+    public int getLargestTable() {
+        int largestTable = 0;
+        for (Table t: tables) {
+            if (t.getTableSize() > largestTable) {
+                largestTable = t.getTableSize();
+            }
+        }
+        return largestTable;
+    }
+
+    //Everything related to Server
+
+    //FIXME some stuff is broken here
+
+    /**
+     * Adds a server to the list of servers in the restaurant
+     * @param server is the server to add to the restaurant
+     */
     public void addServer(Server server) {
         if (servers.isEmpty()) {
             servers.add(server);
@@ -65,6 +139,11 @@ public class Restaurant {
         }
     }
 
+    /**
+     * Gets the highest server number in the list so that the next server to come in
+     * can get a server number that is one higher
+     * @return the highest server number in the list of servers
+     */
     public int getHighestServerNumber() {
         int highestServer = 0;
         for (Server s: servers) {
@@ -78,6 +157,10 @@ public class Restaurant {
 
     private int index = 0;
 
+    /**
+     * Helper to assign servers
+     * @return a custom iterator for round-robin assignment
+     */
     public Iterator<Server> robinIterator() {
         return new Iterator<Server>() {
             @Override
@@ -96,71 +179,36 @@ public class Restaurant {
         };
     }
 
+    Iterator<Server> iterator = robinIterator();
+    Server currentServer = null;
+    /**
+     * Allocates servers to a party
+     */
     public void allocateServers() {
-        Iterator<Server> iterator = robinIterator();
         for (int i = 0; i < partiesInRestaurant.size(); i++) {
             if (!waitingList.contains(partiesInRestaurant.get(i))) {
-                partiesInRestaurant.get(i).setAssignedServer(iterator.next().getServerNumber());
+                currentServer = iterator.next();
+                partiesInRestaurant.get(i).setAssignedServer(currentServer.getServerNumber());
             }
         }
     }
 
-    public void cashOut() {
-        servers.remove(getNextServerToCashOut());
-        allocateServers();
-    }
-
-    //FIXME
-    public int getNextServerToCashOut() {
-        return servers.size() - 1;
-    }
-
-    public int getSmallestAvailableTable (int partySize) {
-        int smallestTableSize = -1;
-        for (int i = 0; i < tables.size(); i++) {
-            Table currTable = tables.get(i);
-            if (!currTable.isOccupied()) {
-                if (currTable.getTableSize() >= partySize) {
-                    if (smallestTableSize == -1) {
-                        smallestTableSize = currTable.getTableSize();
-                    }
-                    if ((smallestTableSize != -1) && (smallestTableSize > currTable.getTableSize())) {
-                        smallestTableSize = currTable.getTableSize();
-                    }
+    public void reallocateServers(int serverNumber) {
+        for (int i = 0; i < partiesInRestaurant.size(); i++) {
+            if (!waitingList.contains(partiesInRestaurant.get(i))) {
+                if (partiesInRestaurant.get(i).getAssignedServer() == serverNumber) {
+                    currentServer = iterator.next();
+                    partiesInRestaurant.get(i).setAssignedServer(currentServer.getServerNumber());
                 }
             }
         }
-
-        if (smallestTableSize != -1) {
-            for (int i = 0; i < tables.size(); i++) {
-                Table currTable = tables.get(i);
-                if (!currTable.isOccupied()) {
-                    if (currTable.getTableSize() == smallestTableSize) {
-                        return i;
-                    }
-                }
-            }
-        }
-
-        return -1;
     }
 
-    public int getLargestTable() {
-        int largestTable = 0;
-        for (Table t: tables) {
-            if (t.getTableSize() > largestTable) {
-                largestTable = t.getTableSize();
-            }
-        }
-        return largestTable;
-    }
-
-    public double totalServerTips() {
-        double tips = 0;
-        for (Server s: servers) {
-            tips += s.getTotalTips();
-        }
-        return tips;
+    /**
+     * @return the next server to remove
+     */
+    public Server getNextServerToCashOut() {
+        return iterator.next();
     }
 
     public double totalCash() {
@@ -175,14 +223,6 @@ public class Restaurant {
         waitingList.add(party);
     }
 
-    public String getName() {
-        return name;
-    }
-
-
-    public List<Table> getTables() {
-        return tables;
-    }
 
 
 }

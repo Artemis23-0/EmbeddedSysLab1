@@ -1,5 +1,3 @@
-import java.util.Iterator;
-
 public class Server {
     private double totalTips;
     private int serverNumber;

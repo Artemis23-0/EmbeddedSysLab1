@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class RestaurantTextUI {
 	// file name from which to read the restaurant data
-	private static final String DEFAULT_RESTAURANT_FILENAME = "tables.txt";
+	private static final String DEFAULT_RESTAURANT_FILENAME = "/Users/artemis1/Desktop/IdeaProjects/hw3-Artemis23-0/tables.txt";
 	private static final DecimalFormat decfor = new DecimalFormat("0.00");
 	Restaurant restaurant = new Restaurant();
 	
@@ -26,9 +26,9 @@ public class RestaurantTextUI {
 		System.out.println("EGR 326 Restaurant Simulator");
 
 		// TODO: initialization code can go here
-		if (readRestaurantData()) {
+	/*	if (readRestaurantData()) {
 			mainMenu();
-		}
+		}*/
 
 	}
 	
@@ -44,7 +44,7 @@ public class RestaurantTextUI {
 
 		// TODO: read restaurant info from tables file;
 		// return true if it was successful and false if not
-		restaurant.producer("/Users/artemis1/Desktop/IdeaProjects/hw3-Artemis23-0/tables.txt");
+		restaurant.producer(restaurantFile.getAbsolutePath());
 		if (restaurant.getTables().isEmpty()) {
 			System.out.println("Unable to read restaurant data: file not found.");
 			return false;
@@ -69,39 +69,6 @@ public class RestaurantTextUI {
 				serversOnDuty();
 			} else if (choice.equals("A")) {
 					addServer();
-			} else if (choice.equals("D")) {
-				dismissServer();
-			} else if (choice.equals("R")) {
-				cashRegister();
-			} else if (choice.equals("P")) {
-				partyToBeSeated();
-			} else if (choice.equals("T")) {
-				tableStatus();
-			} else if (choice.equals("C")) {
-				checkPlease();
-			} else if (choice.equals("W")) {
-				waitingList();
-			} else if (choice.equals("Q")) {
-				break;
-			} else if (choice.equals("?")) {
-				displayOptions();
-			} else if (choice.equals("!")) {
-				rickRoll();
-			}
-			System.out.println();
-		}
-	}
-
-	public void mainMenu2() {
-		// main menu
-		while (true) {
-			String choice = ValidInputReader.getValidString(
-					"Main menu, enter your choice:",
-					"^[sSaAdDrRpPtTcCwWqQ!?]$").toUpperCase();
-			if (choice.equals("S")) {
-				serversOnDuty();
-			} else if (choice.equals("A")) {
-				addServer();
 			} else if (choice.equals("D")) {
 				dismissServer();
 			} else if (choice.equals("R")) {
@@ -179,17 +146,21 @@ public class RestaurantTextUI {
 		if (restaurant.getServers().size() == 1 && restaurant.tablesHavePeople()) {
 			System.out.println("Sorry, the server cannot cash out now;");
 			System.out.println("there are still tables remaining and this is the only server left.");
+			return;
 		}
 		
 		// when the server is able to be dismissed,
 		System.out.println("Dismissing a server:");
 		
 		// TODO: cash out server and display current count of servers
-		Server cashedOutServer = restaurant.getServers().get(restaurant.getNextServerToCashOut());
-		System.out.println("Server #" + restaurant.getNextServerToCashOut() + " cashes out with $" +
-				cashedOutServer.getTotalTips() + " in total tips.");
+		Server cashedOutServer = restaurant.getNextServerToCashOut();
+		System.out.println("Server #" + cashedOutServer.getServerNumber() + " cashes out with $" +
+						decfor.format(cashedOutServer.getTotalTips())
+				 + " in total tips.");
 		// Server #2 cashes out with $47.95 in total tips.
-		restaurant.cashOut();
+		restaurant.reallocateServers(cashedOutServer.getServerNumber());
+		restaurant.getServers().remove(cashedOutServer);
+
 		System.out.println("Servers now available: " + restaurant.getServers().size());
 		// Servers now available: 3
 	}
@@ -210,8 +181,8 @@ public class RestaurantTextUI {
 		System.out.println("Tables status:");
 
 		// TODO: show restaurant's table statuses, e.g.:
-		for (int i = 0; i < restaurant.tables.size(); i++) {
-			Table currTable = restaurant.tables.get(i);
+		for (int i = 0; i < restaurant.getTables().size(); i++) {
+			Table currTable = restaurant.getTables().get(i);
 			if (currTable.isOccupied()) {
 				System.out.println("Table " + (i + 1) + " (" + currTable.getTableSize() + " top): " +
 						currTable.getAssignedParty().getPartyName() + " party of " + currTable.getAssignedParty().getPartySize() +
@@ -229,23 +200,17 @@ public class RestaurantTextUI {
 	private void checkPlease() {
 		System.out.println("Send the check to a party that has finished eating:");
 		String partyName = ValidInputReader.getValidString("Party's name?", "^[a-zA-Z '-]+$");
-		
-		// when such a party is sitting at a table in the restaurant,
-		double subtotal = ValidInputReader.getValidDouble("Bill subtotal?", 0.0, 9999.99);
-		double tip = ValidInputReader.getValidDouble("Tip?", 0.0, 9999.99);
+		int serverNumber = -1;
 
 		Boolean nameIsContained = false;
 		for (int i = 0; i < restaurant.getTables().size(); i++) {
 			Table currTable = restaurant.getTables().get(i);
 			if (currTable.isOccupied()) {
 				Party p = currTable.getAssignedParty();
-
-				// TODO: give tip to server, e.g.:
-				// Gave tip of $9.50 to Server #2.
-				if (p.getPartyName().equals(partyName)) {
+				if (p.getPartyName().equals((partyName))) {
 					nameIsContained = true;
-					System.out.println("Gave tip 0f $" + decfor.format(tip) + " to Server #" + p.getAssignedServer());
-					currTable.setOccupied(false);
+					serverNumber = p.getAssignedServer();
+					break;
 				}
 			}
 		}
@@ -254,36 +219,65 @@ public class RestaurantTextUI {
 			// when such a party is NOT sitting at a table in the restaurant,
 			System.out.println("There is no party by that name.");
 			System.out.println();
-			mainMenu2();
+			return;
 		}
+
+
+
+		// when such a party is sitting at a table in the restaurant,
+		double subtotal = ValidInputReader.getValidDouble("Bill subtotal?", 0.0, 9999.99);
+		double tip = ValidInputReader.getValidDouble("Tip?", 0.0, 9999.99);
+
+
+		for (int i = 0; i < restaurant.getTables().size(); i++) {
+			Table currTable = restaurant.getTables().get(i);
+			if (currTable.isOccupied()) {
+				Party p = currTable.getAssignedParty();
+
+				// TODO: give tip to server, e.g.:
+				// Gave tip of $9.50 to Server #2.
+				if (p.getPartyName().equals(partyName)) {
+					System.out.println("Gave tip 0f $" + decfor.format(tip) + " to Server #" + p.getAssignedServer());
+
+					for (int j = 0; j < restaurant.getServers().size(); j++) {
+						if (restaurant.getServers().get(j).getServerNumber() == p.getAssignedServer()) {
+							restaurant.getServers().get(j).setTotalTips(tip);
+							break;
+						}
+					}
+					currTable.setOccupied(false);
+					break;
+				}
+			}
+		}
+
 			
 		// update restaurant's cash register, e.g.
 		restaurant.addToCashRegister(subtotal);
 		// Gave total of $39.75 to cash register.
 		System.out.println("Gave total of $" + decfor.format((1.10 * subtotal)) + " to cash register.");
 
-		//if (!restaurant.getWaitingList().isEmpty()) {
+		if (!restaurant.getWaitingList().isEmpty()) {
 		System.out.println("Seating from waiting list:");
-			// when a party on the waiting list can now be seated, e.g.:
-			// Table 6 (6-top): Erickson party of 5 - Server #2
-		//}
-
-		for (int i = 0; i < restaurant.getWaitingList().size(); i++) {
-			int smallestTable = restaurant.getSmallestAvailableTable(restaurant.getWaitingList().get(i).getPartySize());
-			if (smallestTable != -1) {
-				restaurant.getTables().get(smallestTable).setAssignedParty(restaurant.getWaitingList().get(i));
-				restaurant.allocateServers();
-				System.out.println("Table " + (smallestTable + 1) + " (" + restaurant.getTables().get(smallestTable).getTableSize() + " top): " +
-						restaurant.getTables().get(smallestTable).getAssignedParty().getPartyName() + " party of " + restaurant.getTables().get(smallestTable).getAssignedParty().getPartySize() +
-						" - Server #" + restaurant.getTables().get(smallestTable).getAssignedParty().getAssignedServer());
-				// Table 6 (6-top): Erickson party of 5 - Server #2
-				restaurant.getWaitingList().remove(i);
-				break;
+			for (int i = 0; i < restaurant.getWaitingList().size(); i++) {
+				int smallestTable = restaurant.getSmallestAvailableTable(restaurant.getWaitingList().get(i).getPartySize());
+				if (smallestTable != -1) {
+					Party partyToBeSeated = restaurant.getWaitingList().get(i);
+					restaurant.getTables().get(smallestTable).setAssignedParty(partyToBeSeated);
+					restaurant.getTables().get(smallestTable).getAssignedParty().setAssignedServer(serverNumber);
+					restaurant.getWaitingList().remove(i);
+					System.out.println("Table " + (smallestTable + 1) + " (" + restaurant.getTables().get(smallestTable).getTableSize() + " top): " +
+							restaurant.getTables().get(smallestTable).getAssignedParty().getPartyName() + " party of " +
+							restaurant.getTables().get(smallestTable).getAssignedParty().getPartySize() +
+							" - Server #" + restaurant.getTables().get(smallestTable).getAssignedParty().getAssignedServer());
+					restaurant.iterator.next();
+					// Table 6 (6-top): Erickson party of 5 - Server #2
+					break;
+				}
 			}
 		}
-
 		System.out.println();
-		mainMenu2();
+		return;
 	}
 	
 	// Called when W key is pressed from main menu.
@@ -314,44 +308,35 @@ public class RestaurantTextUI {
 			System.out.println("Sorry, there are no servers here yet to seat this party");
 			System.out.println("and take their orders.  Add servers and try again.");
 			System.out.println();
-			mainMenu2();
+			return;
 		}
 
 
 		// when there is at least one server,
 		String partyName = ValidInputReader.getValidString("Party's name?", "^[a-zA-Z '-]+$");
-		int partySize = ValidInputReader.getValidInt("How many people in the party?", 1, 99999);
-		Party party = new Party(partyName, partySize);
-		Boolean hasDuplicateName = false;
-
-		if (restaurant.getPartiesInRestaurant().isEmpty()) {
-			restaurant.getPartiesInRestaurant().add(party);
-		} else {
-			for (Party p : restaurant.getPartiesInRestaurant()) {
-				if (partyName.equals(p.getPartyName())) {
-					// when a duplicate party name is found,
-					hasDuplicateName = true;
-				}
+		for (Party p : restaurant.getPartiesInRestaurant()) {
+			if (partyName.equals(p.getPartyName())) {
+				// when a duplicate party name is found,
+				System.out.println("We already have a party with that name in the restaurant.");
+				System.out.println("Please try again with a unique party name.");
+				partyToBeSeated();
+				break;
 			}
 		}
 
-		if (hasDuplicateName) {
-			System.out.println("We already have a party with that name in the restaurant.");
-			System.out.println("Please try again with a unique party name.");
-			partyToBeSeated();
-		} else {
-			restaurant.getPartiesInRestaurant().add(party);
-		}
+		int partySize = ValidInputReader.getValidInt("How many people in the party?", 1, 99999);
 
-
-		// TODO: try to seat this party
-		
 		// when the restaurant doesn't have any tables big enough to ever seat this party,
 		if (partySize > restaurant.getLargestTable()) {
 			System.out.println("Sorry, the restaurant is unable to seat a party of this size.");
 			System.out.println();
-			mainMenu2();
+			return;
 		}
+
+		Party party = new Party(partyName, partySize);
+		restaurant.getPartiesInRestaurant().add(party);
+
+		// TODO: try to seat this party
 
 		int smallestTable = restaurant.getSmallestAvailableTable(partySize);
 		if (smallestTable == -1) {
@@ -384,17 +369,5 @@ public class RestaurantTextUI {
 		System.out.println("Never gonna make you cry");
 		System.out.println("Never gonna say goodbye");
 		System.out.println("Never gonna tell a lie and hurt you");
-	}
-	
-	// This helper is just put into the text UI code to mark places where you
-	// will need to add or modify this file.  Crashes with a runtime exception.
-	private void crash(String message) {
-		// Math.random() < 10 will always be true;  so why is it there?
-		// I can't just throw because Eclipse will then warn about dead code
-		// for any code that occurs after a call to crash().
-		// So I wrap the exception throw in an "opaque predicate" to fool it.
-		if (Math.random() < 10) {
-			throw new RuntimeException("Not yet implemented: " + message);
-		}
 	}
 }
