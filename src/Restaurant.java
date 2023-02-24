@@ -10,7 +10,7 @@ public class Restaurant {
     private List<Party> waitingList;
     private List<Party> partiesInRestaurant;
     private List<Server> servers;
-    private static double cashRegister = 0;
+    private double cashRegister;
 
     //Constructor
     public Restaurant() {
@@ -18,13 +18,13 @@ public class Restaurant {
         tables = new ArrayList<>();
         waitingList = new ArrayList<>();
         servers = new ArrayList<>();
+        cashRegister = 0;
     }
 
     //Basic Getters
     public String getName() {
         return name;
     }
-
 
     public List<Table> getTables() {
         return tables;
@@ -39,6 +39,24 @@ public class Restaurant {
 
     public List<Server> getServers() {
         return servers;
+    }
+
+    public void addToCashRegister(double cash) {
+        if (cash < 0) {
+            throw new IllegalArgumentException("Stealing is wrong you pleb.");
+        }
+        cashRegister += (1.10 * cash);
+    }
+
+    public void addToWaitingList(Party party) {
+        if (waitingList.contains(party)) {
+            throw new IllegalArgumentException("Already contains this party");
+        }
+        if ((party == null)) {
+            throw new IllegalArgumentException("Cannot add this party to the waiting list");
+        }
+
+        waitingList.add(party);
     }
 
     //Everything related to table
@@ -124,7 +142,7 @@ public class Restaurant {
 
     //Everything related to Server
 
-    //FIXME some stuff is broken here
+
 
     /**
      * Adds a server to the list of servers in the restaurant
@@ -218,14 +236,6 @@ public class Restaurant {
 
     public double totalCash() {
         return cashRegister;
-    }
-
-    public void addToCashRegister(double cash) {
-        cashRegister += (1.10 * cash);
-    }
-
-    public void addToWaitingList(Party party) {
-        waitingList.add(party);
     }
 
 

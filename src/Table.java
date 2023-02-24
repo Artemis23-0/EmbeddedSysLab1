@@ -6,6 +6,9 @@ public class Table {
     private Party assignedParty;
 
     public Table (int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("You cannot have a negative table size");
+        }
         this.size = size;
         isOccupied = false;
         assignedParty = null;
@@ -35,6 +38,11 @@ public class Table {
         if (party == null) {
             throw new IllegalArgumentException("No null parties allowed here buddy.");
         }
+
+        if (party.getPartySize() > getTableSize()) {
+            throw new IllegalArgumentException("Cannot seat a party larger than the table");
+        }
+
         assignedParty = party;
         isOccupied = true;
     }

@@ -12,10 +12,16 @@ public class Server {
     }
 
     public void setTotalTips(double totalTips) {
+        if (totalTips < 0) {
+            throw new IllegalArgumentException("Why would you give a negative tip you monster");
+        }
         this.totalTips += totalTips;
     }
 
     public void setServerNumber(int serverNumber) {
+        if (serverNumber < 0) {
+            throw new IllegalArgumentException("You cannot have a negative server...that's mean");
+        }
         this.serverNumber = serverNumber;
     }
 

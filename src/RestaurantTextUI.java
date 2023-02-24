@@ -39,7 +39,7 @@ public class RestaurantTextUI {
 	 */
 	public boolean readRestaurantData() {
 		File restaurantFile = ValidInputReader.getValidFile(
-				"File name for restaurant data [" + DEFAULT_RESTAURANT_FILENAME + "]?",
+				"File name for restaurant data [tables.txt]?",
 				DEFAULT_RESTAURANT_FILENAME);
 
 		// TODO: read restaurant info from tables file;
