@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class RestaurantTextUI {
 	// file name from which to read the restaurant data
-	private static final String DEFAULT_RESTAURANT_FILENAME = "/Users/artemis1/Desktop/IdeaProjects/hw3-Artemis23-0/tables.txt";
+	private static final String DEFAULT_RESTAURANT_FILENAME = "/tables.txt";
 	private static final DecimalFormat decfor = new DecimalFormat("0.00");
 	Restaurant restaurant = new Restaurant();
 	
