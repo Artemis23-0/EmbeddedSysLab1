@@ -4,7 +4,23 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Homework #3: Restaurant <br>
+ * Class: EGR222, Section A <br>
+ * Professor Hudnall <br>
+ *
+ * This class manages the tables, server, and party classes to interface with a text user interface
+ * to manage a fictional restaurant.
+ *
+ * @author Kay Karman (754506)
+ * @author Riley Spence (Partner)
+ * @version 1.0
+ * @since   2023-24-02
+
+ *
+ */
 public class Restaurant {
+    //Fields
     private String name;
     private List<Table> tables;
     private List<Party> waitingList;
@@ -25,22 +41,27 @@ public class Restaurant {
     public String getName() {
         return name;
     }
-
     public List<Table> getTables() {
         return tables;
     }
     public List<Party> getWaitingList() {
         return waitingList;
     }
-
     public List<Party> getPartiesInRestaurant() {
         return partiesInRestaurant;
     }
-
     public List<Server> getServers() {
         return servers;
     }
+    public double totalCash() {
+        return cashRegister;
+    }
 
+    /**
+     * Adds a certain amount of money to the cash register
+     * @throws IllegalArgumentException if the cash to be added is less than 0
+     * @param cash is the amount of money to add to the cash register
+     */
     public void addToCashRegister(double cash) {
         if (cash < 0) {
             throw new IllegalArgumentException("Stealing is wrong you pleb.");
@@ -48,6 +69,12 @@ public class Restaurant {
         cashRegister += (1.10 * cash);
     }
 
+    /**
+     * Adds a party to the waiting list
+     * @throws IllegalArgumentException if the waiting list already contains a party or
+     * if the party is null
+     * @param party is the party to add to the waiting list
+     */
     public void addToWaitingList(Party party) {
         if (waitingList.contains(party)) {
             throw new IllegalArgumentException("Already contains this party");
@@ -92,8 +119,11 @@ public class Restaurant {
     }
 
     /**
+     * This is a helper method to get the index of the smallest possible table that is available to seat
+     * a party of a certain size
      * @param partySize the size of the party to seat
-     * @return the first smallest table in the list that can seat this party
+     * @return the INDEX of the first smallest table in the list that can seat this party, -1 if there is no
+     * table that can fit a party of that size
      */
     public int getSmallestAvailableTable (int partySize) {
         //Find smallest available table size
@@ -176,7 +206,7 @@ public class Restaurant {
     private int index = 0;
 
     /**
-     * Helper to assign servers
+     * Helper to assign servers. Acts as a continuous iterator that resets the index
      * @return a custom iterator for round-robin assignment
      */
     public Iterator<Server> robinIterator() {
@@ -200,7 +230,7 @@ public class Restaurant {
     Iterator<Server> iterator = robinIterator();
     Server currentServer = null;
     /**
-     * Allocates servers to a party
+     * Allocates servers to a party round-robin style
      */
     public void allocateServers() {
         for (int i = 0; i < partiesInRestaurant.size(); i++) {
@@ -211,6 +241,10 @@ public class Restaurant {
         }
     }
 
+    /**
+     * This method reallocates parties that belonged to a server that has been dismissed
+     * @param serverNumber is the server that is leaving
+     */
     public void reallocateServers(int serverNumber) {
         for (int i = 0; i < partiesInRestaurant.size(); i++) {
             if (!waitingList.contains(partiesInRestaurant.get(i))) {
@@ -233,11 +267,6 @@ public class Restaurant {
     public Server getNextServerToCashOut() {
         return iterator.next();
     }
-
-    public double totalCash() {
-        return cashRegister;
-    }
-
 
 
 }
